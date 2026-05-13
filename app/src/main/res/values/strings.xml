@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Callify</string>
+    <string name="status_running">Callify is running.</string>
+    <string name="overlay_permission_explanation">Callify needs permission to display caller information on top of other apps. Please enable it in the next screen.</string>
+</resources>
