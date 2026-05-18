@@ -12,6 +12,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.callify.service.CallDetectorService
+import com.callify.R
 
 /**
  * The main entry point of the Callify application.

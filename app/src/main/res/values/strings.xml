@@ -2,4 +2,12 @@
     <string name="app_name">Callify</string>
     <string name="status_running">Callify is running.</string>
     <string name="overlay_permission_explanation">Callify needs permission to display caller information on top of other apps. Please enable it in the next screen.</string>
+    <string name="caller_name_format">%1$s %2$s</string>
+    <string name="unknown_caller">Unknown Caller</string>
+    <string name="not_found_address">Not in Callify database</string>
+    <string name="timeout_name">Lookup timed out</string>
+    <string name="timeout_address">Could not reach server in time</string>
+    <string name="network_error_name">No connection</string>
+    <string name="network_error_address">Check your internet connection</string>
+    <string name="address_unavailable">Address unavailable</string>
 </resources>
