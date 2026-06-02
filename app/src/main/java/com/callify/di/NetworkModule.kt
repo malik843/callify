@@ -1,5 +1,6 @@
 package com.callify.di
 
+/*
 import com.callify.BuildConfig
 import com.callify.data.model.CallerInfo
 import com.callify.data.remote.CallerApiClient
@@ -15,10 +16,17 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.Collections
 import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
+*/
 
 /**
  * Hilt module for providing network-related dependencies.
  */
+/*
+ * ── MOCK MODE: Network module disabled ───────────────────────────
+ * Uncomment this module when the real API is ready.
+ * See MockCallerDataSource for the active lookup path.
+ * ─────────────────────────────────────────────────────────────────
+
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
@@ -35,17 +43,26 @@ object NetworkModule {
         }
 
         return OkHttpClient.Builder()
-            .connectTimeout(1, TimeUnit.SECONDS)
-            .readTimeout(2, TimeUnit.SECONDS)
-            .writeTimeout(1, TimeUnit.SECONDS)
+            .connectTimeout(3, TimeUnit.SECONDS)
+            .readTimeout(4, TimeUnit.SECONDS)
+            .writeTimeout(3, TimeUnit.SECONDS)
             .connectionPool(ConnectionPool(5, 30, TimeUnit.SECONDS))
             .retryOnConnectionFailure(false)
             .addInterceptor(loggingInterceptor)
             .build()
-    }
+     }
 
     /**
-     * Provides the [Retrofit] instance configured with the base URL and Gson converter.
+     * Retrofit instance pointed at [BuildConfig.CALLIFY_API_BASE_URL].
+     *
+     * Active endpoints:
+     *   POST /lookup  →  [CallerApiClient.lookup]
+     *
+     * To add a future endpoint:
+     *   1. Add the suspend fun to [CallerApiClient]
+     *   2. Add the request/response data class to data.model
+     *   3. Add the call site to [CallerRepository]
+     *   4. Annotate with the CALLIFY API CALL block format
      */
     @Provides
     @Singleton
@@ -82,3 +99,6 @@ object NetworkModule {
         )
     }
 }
+
+ * ─────────────────────────────────────────────────────────────────
+ */

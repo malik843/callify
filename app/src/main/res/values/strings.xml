@@ -10,4 +10,10 @@
     <string name="network_error_name">No connection</string>
     <string name="network_error_address">Check your internet connection</string>
     <string name="address_unavailable">Address unavailable</string>
+    <string name="about_label">About</string>
+    <string name="about_subtitle">Callify identifies incoming callers in real time using your organisation\'s contact database. It runs quietly in the background and only activates when your phone rings.</string>
+    <string name="permissions_label">Permissions</string>
+    <string name="permission_phone_state">Phone State</string>
+    <string name="permission_notifications">Notifications</string>
+    <string name="permission_overlay">Draw Over Apps</string>
 </resources>

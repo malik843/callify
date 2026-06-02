@@ -1,14 +1,11 @@
 package com.callify.repository
 
+import com.callify.data.local.MockCallerDataSource
 import com.callify.data.model.CallerInfo
 import com.callify.data.model.CallerResult
-import com.callify.data.remote.CallerApiClient
-import com.callify.data.remote.LookupRequest
 import com.callify.utils.PhoneNumberNormalizer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
-import java.net.SocketTimeoutException
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -19,61 +16,58 @@ import javax.inject.Singleton
  */
 @Singleton
 class CallerRepository @Inject constructor(
-    private val apiClient: CallerApiClient,
+    // ── MOCK MODE ─────────────────────────────────────────────────
+    // When API is ready: replace mockDataSource with apiClient
+    // and uncomment the network block below
+    private val mockDataSource: MockCallerDataSource,
+    // private val apiClient: CallerApiClient,  // ← restore for API
+    // ──────────────────────────────────────────────────────────────
     private val callerCache: MutableMap<String, CallerInfo>
 ) {
 
     /**
-     * Look up caller information for the given phone number.
-     * 
-     * Logic:
-     * 1. Normalize the phone number.
-     * 2. Check the LRU cache first using the normalized key.
-     * 3. If miss, fire API request.
-     * 4. Handle success, 404, other HTTP errors, timeouts, and IO failures.
-     * 5. Update cache on successful lookup.
-     *
-     * @param phoneNumber The raw phone number string to identify.
-     * @return A [CallerResult] representing the outcome of the lookup.
+     * ─────────────────────────────────────────────
+     * CALLIFY API CALL
+     * ─────────────────────────────────────────────
+     * Endpoint : POST {CALLIFY_API_BASE_URL}/lookup
+     * Trigger  : CALL_STATE_RINGING — fires once per incoming call
+     * Request  : { "phone": "<normalised_number>" }
+     * Response : { "firstname": String?,
+     *              "lastname":  String?,
+     *              "address":   String? }
+     * 404      : CallerResult.NotFound
+     * Timeout  : CallerResult.Timeout  (connect 3s / read 4s)
+     * Error    : CallerResult.NetworkError
+     * Cache    : LRU 50 — checked before firing; stored on 200 OK
+     * ─────────────────────────────────────────────
      */
     suspend fun lookup(phoneNumber: String): CallerResult = withContext(Dispatchers.IO) {
         // 1. Normalize the number
-        val key = PhoneNumberNormalizer.normalize(phoneNumber) 
+        val key = PhoneNumberNormalizer.normalizeForLocalLookup(phoneNumber) 
             ?: return@withContext CallerResult.NotFound
 
-        // 2. Check LRU Cache
+        // CACHE CHECK — hit returns immediately, no API call fired
         callerCache[key]?.let {
             return@withContext CallerResult.Found(it)
         }
 
-        // 3. Fire Network Request
-        return@withContext try {
-            val response = apiClient.lookup(LookupRequest(key))
+        // ── MOCK LOOKUP (replace with API call when ready) ────────
+        val result = mockDataSource.lookup(key)
+        // ── END MOCK ──────────────────────────────────────────────
 
-            if (response.isSuccessful) {
-                val body = response.body()
-                if (body != null) {
-                    // 4. Update Cache & Return Found
-                    callerCache[key] = body
-                    CallerResult.Found(body)
-                } else {
-                    CallerResult.NetworkError
-                }
-            } else {
-                // 5. Handle HTTP Errors
-                when (response.code()) {
-                    404 -> CallerResult.NotFound
-                    else -> CallerResult.NetworkError
-                }
-            }
-        } catch (e: SocketTimeoutException) {
-            // 6. Handle Timeout
-            CallerResult.Timeout
-        } catch (e: IOException) {
-            // 7. Handle other Network Errors
-            CallerResult.NetworkError
-        } catch (e: Exception) {
-            CallerResult.NetworkError
+        // ── REAL API CALL (uncomment when API is ready) ───────────
+        // val response = apiClient.lookup(LookupRequest(key))
+        // if (!response.isSuccessful) return if (response.code() == 404)
+        //     CallerResult.NotFound else CallerResult.NetworkError
+        // val result = response.body()
+        // ── END REAL API ──────────────────────────────────────────
+
+        return@withContext if (result != null) {
+            // CACHE STORE — successful response cached for future calls
+            callerCache[key] = result
+            CallerResult.Found(result)
+        } else {
+            CallerResult.NotFound
         }
     }
 }

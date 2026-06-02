@@ -68,7 +68,15 @@ class CallDetectorService : Service() {
         if (BuildConfig.DEBUG) Log.d(TAG, "CallDetectorService created")
         
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, createNotification())
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            startForeground(
+                NOTIFICATION_ID,
+                createNotification(),
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_PHONE_CALL
+            )
+        } else {
+            startForeground(NOTIFICATION_ID, createNotification())
+        }
 
         if (!PermissionHelper.hasPhoneStatePermission(this)) {
             Log.e(TAG, "READ_PHONE_STATE permission missing. Stopping service.")
@@ -168,6 +176,13 @@ class CallDetectorService : Service() {
                 overlayManager.showLoading()
                 
                 lookupJob = serviceScope.launch {
+                    // ── API TRIGGER ──────────────────────────────────────────────────
+                    // This is the only location in the service layer that initiates
+                    // a Callify API call. Fires on CALL_STATE_RINGING after:
+                    //   1. isCallActive guard set to true
+                    //   2. Number validated and normalised by PhoneNumberNormalizer
+                    //   3. showLoading() overlay already rendered to the user
+                    // ─────────────────────────────────────────────────────────────────
                     val result = callerRepository.lookup(normalized)
                     
                     // Thread Safety: Ensure UI updates happen on the Main thread

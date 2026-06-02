@@ -18,6 +18,11 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
+        // CALLIFY_API_BASE_URL — base URL for all Callify API calls.
+        // Trailing slash required (Retrofit appends endpoint paths to this).
+        // Currently used by: POST /lookup (CallerApiClient.lookup)
+        // To add a new endpoint, extend CallerApiClient — do not add a
+        // second base URL field.
         buildConfigField("String", "CALLIFY_API_BASE_URL", "\"https://api.callify.com/\"")
     }
 
@@ -45,6 +50,7 @@ android {
     }
     buildFeatures {
         buildConfig = true
+        viewBinding = true
     }
 }
 
@@ -69,7 +75,11 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
+    // Room — local database for mock data (swap for API when ready)
+    implementation("androidx.room:room-runtime:2.8.4")
+    implementation("androidx.room:room-ktx:2.8.4")
+    kapt("androidx.room:room-compiler:2.8.4")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
 }

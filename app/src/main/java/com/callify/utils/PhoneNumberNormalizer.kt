@@ -21,4 +21,27 @@ object PhoneNumberNormalizer {
             
         return if (stripped.isEmpty()) null else stripped
     }
+
+    /**
+     * Strips country code and leading zero so the result
+     * matches the 10-digit format stored in the local database.
+     *
+     * Examples:
+     *   +2349074086115  →  9074086115
+     *   2349074086115   →  9074086115
+     *   09074086115     →  9074086115
+     *   9074086115      →  9074086115  (already correct)
+     *
+     * Extend this function when the real API is integrated
+     * if the server expects a different format.
+     */
+    fun normalizeForLocalLookup(raw: String?): String? {
+        val base = normalize(raw) ?: return null
+        return when {
+            base.startsWith("+234") -> base.removePrefix("+234")
+            base.startsWith("234")  -> base.removePrefix("234")
+            base.startsWith("0")    -> base.removePrefix("0")
+            else                    -> base
+        }
+    }
 }
