@@ -1,8 +1,10 @@
 package com.callify.data.local
 
+import android.util.Log
 import com.callify.data.model.CallerInfo
 
 object DatabaseSeeder {
+    private const val TAG = "Callify"
 
     /**
      * Seeds the contacts database with the mock dataset.
@@ -10,8 +12,19 @@ object DatabaseSeeder {
      * Must be called from a coroutine on Dispatchers.IO.
      */
     suspend fun seedIfEmpty(dao: CallerDao) {
-        if (dao.count() > 0) return
+        val currentCount = dao.count()
+        Log.d(TAG, "DatabaseSeeder: Current database record count = $currentCount")
+        
+        if (currentCount > 0) {
+            val allRecords = dao.getAll()
+            Log.d(TAG, "DatabaseSeeder: Database is already seeded. Listing all records:")
+            allRecords.forEach {
+                Log.d(TAG, "  - Caller: ${it.firstname} ${it.lastname}, Phone: '${it.phone}'")
+            }
+            return
+        }
 
+        Log.d(TAG, "DatabaseSeeder: Seeding database with 10 contacts...")
         val contacts = listOf(
             CallerInfo(firstname = "Arnold",     lastname = "Alaye",           phone = "9074086115", address = "plot 16, otungba jobi fele way, ikeja."),
             CallerInfo(firstname = "Ayokunmi",   lastname = "Israel Adebanjo", phone = "8143147766", address = "plot 16, otungba jobi fele way, ikeja."),
@@ -25,5 +38,12 @@ object DatabaseSeeder {
             CallerInfo(firstname = "Azeem",      lastname = "Ogunmola",        phone = "7052634086", address = "plot 16, otungba jobi fele way, ikeja.")
         )
         dao.insertAll(contacts)
+        
+        val newCount = dao.count()
+        Log.d(TAG, "DatabaseSeeder: Seeding completed. New database record count = $newCount")
+        val allRecords = dao.getAll()
+        allRecords.forEach {
+            Log.d(TAG, "  - Caller: ${it.firstname} ${it.lastname}, Phone: '${it.phone}'")
+        }
     }
 }

@@ -105,11 +105,17 @@ class CallDetectorService : Service() {
 
     /**
      * Registers the appropriate listener for call states based on Android version.
+     *
+     * On API 31+ [TelephonyCallback.CallStateListener] only reports the call
+     * *state* — the phone number is captured earlier by [CallifyScreeningService]
+     * and made available via [CallifyScreeningService.pendingNumber].
      */
     private fun registerCallListener() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val callback = object : TelephonyCallback(), TelephonyCallback.CallStateListener {
                 override fun onCallStateChanged(state: Int) {
+                    // Number is null here by design on API 31+.
+                    // handleCallState() will read it from CallifyScreeningService.
                     handleCallState(state, null)
                 }
             }
@@ -119,7 +125,10 @@ class CallDetectorService : Service() {
             val listener = CallifyPhoneStateListener()
             phoneStateListener = listener
             @Suppress("DEPRECATION")
-            telephonyManager.listen(listener, PhoneStateListener.LISTEN_CALL_STATE)
+            telephonyManager.listen(
+                listener,
+                PhoneStateListener.LISTEN_CALL_STATE
+            )
         }
     }
 
@@ -150,9 +159,18 @@ class CallDetectorService : Service() {
                 lookupJob?.cancel()
                 overlayManager.dismiss()
 
-                val normalized = PhoneNumberNormalizer.normalize(incomingNumber)
+                // On API 29+ the number comes from CallifyScreeningService,
+                // which is called by the OS before RINGING is broadcast.
+                // On older APIs it arrives via the PhoneStateListener param.
+                val rawNumber = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    CallifyScreeningService.pendingNumber ?: incomingNumber
+                } else {
+                    incomingNumber
+                }
+
+                val normalized = PhoneNumberNormalizer.normalize(rawNumber)
                 
-                if (BuildConfig.DEBUG) Log.d(TAG, "Incoming: $incomingNumber (normalized: $normalized)")
+                if (BuildConfig.DEBUG) Log.d(TAG, "Incoming: $rawNumber (normalized: $normalized)")
 
                 // Edge Case: Private / Withheld numbers
                 if (normalized == null || 
@@ -214,6 +232,10 @@ class CallDetectorService : Service() {
                 isCallActive = false
                 lookupJob?.cancel()
                 overlayManager.dismiss()
+                // Clear the number captured by CallifyScreeningService.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    CallifyScreeningService.clearPendingNumber()
+                }
             }
         }
     }

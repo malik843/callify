@@ -1,5 +1,6 @@
 package com.callify.data.local
 
+import android.util.Log
 import com.callify.data.model.CallerInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -15,9 +16,11 @@ import kotlinx.coroutines.withContext
  *   2. Uncomment CallerApiClient usage in CallerRepository
  *   3. Uncomment NetworkModule in the DI graph
  *   4. Remove Room dependency if no longer needed
+ *   5. Remove logging helper
  * ─────────────────────────────────────────────────────────────────
  */
 class MockCallerDataSource(private val dao: CallerDao) {
+    private val TAG = "Callify"
 
     /**
      * Looks up a caller by normalised phone number.
@@ -28,7 +31,14 @@ class MockCallerDataSource(private val dao: CallerDao) {
      */
     suspend fun lookup(normalizedPhone: String): CallerInfo? {
         return withContext(Dispatchers.IO) {
-            dao.findByPhone(normalizedPhone)
+            Log.d(TAG, "MockCallerDataSource: looking up phone number: '$normalizedPhone'")
+            val result = dao.findByPhone(normalizedPhone)
+            if (result != null) {
+                Log.d(TAG, "MockCallerDataSource: Found caller in DB: ${result.firstname} ${result.lastname}")
+            } else {
+                Log.d(TAG, "MockCallerDataSource: No caller found in DB for: '$normalizedPhone'")
+            }
+            result
         }
     }
 }

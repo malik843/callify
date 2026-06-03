@@ -20,7 +20,9 @@ abstract class CallifyDatabase : RoomDatabase() {
                     context.applicationContext,
                     CallifyDatabase::class.java,
                     "callify_contacts.db"
-                ).build().also { INSTANCE = it }
+                )
+                .fallbackToDestructiveMigration(true)
+                .build().also { INSTANCE = it }
             }
         }
     }

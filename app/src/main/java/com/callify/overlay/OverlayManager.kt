@@ -3,6 +3,7 @@ package com.callify.overlay
 import android.content.Context
 import android.graphics.PixelFormat
 import android.provider.Settings
+import android.view.ContextThemeWrapper
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -45,7 +46,8 @@ class OverlayManager @Inject constructor(
             dismiss()
         }
 
-        val inflater = LayoutInflater.from(context)
+        val themedContext = ContextThemeWrapper(context, R.style.Theme_Callify)
+        val inflater = LayoutInflater.from(themedContext)
         // Passing null is acceptable for WindowManager overlays as there is no parent ViewGroup.
         overlayView = inflater.inflate(R.layout.overlay_caller, null)
 
@@ -87,7 +89,8 @@ class OverlayManager @Inject constructor(
 
         // If not already showing (e.g. showLoading was skipped or failed), create it
         if (overlayView == null) {
-            val inflater = LayoutInflater.from(context)
+            val themedContext = ContextThemeWrapper(context, R.style.Theme_Callify)
+            val inflater = LayoutInflater.from(themedContext)
             overlayView = inflater.inflate(R.layout.overlay_caller, null)
             overlayView?.let { view ->
                 view.findViewById<ImageButton>(R.id.dismissButton).setOnClickListener { dismiss() }

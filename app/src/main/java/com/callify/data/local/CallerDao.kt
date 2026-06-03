@@ -28,4 +28,8 @@ interface CallerDao {
     /** Row count — used to check if seeding is needed. */
     @Query("SELECT COUNT(*) FROM contacts")
     suspend fun count(): Int
+
+    /** Returns all contacts — used for debugging. */
+    @Query("SELECT * FROM contacts")
+    suspend fun getAll(): List<CallerInfo>
 }

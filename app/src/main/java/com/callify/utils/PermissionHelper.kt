@@ -19,10 +19,17 @@ object PermissionHelper {
      * @return True if permission is granted, false otherwise.
      */
     fun hasPhoneStatePermission(context: Context): Boolean {
-        return ContextCompat.checkSelfPermission(
+        val phoneStateGranted = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.READ_PHONE_STATE
         ) == PackageManager.PERMISSION_GRANTED
+
+        val callLogGranted = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.READ_CALL_LOG
+        ) == PackageManager.PERMISSION_GRANTED
+
+        return phoneStateGranted && callLogGranted
     }
 
     /**
