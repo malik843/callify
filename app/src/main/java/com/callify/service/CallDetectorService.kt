@@ -105,11 +105,17 @@ class CallDetectorService : Service() {
 
     /**
      * Registers the appropriate listener for call states based on Android version.
+     *
+     * On API 31+ [TelephonyCallback.CallStateListener] only reports the call
+     * *state* — the phone number is captured earlier by [CallifyScreeningService]
+     * and made available via [CallifyScreeningService.pendingNumber].
      */
     private fun registerCallListener() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val callback = object : TelephonyCallback(), TelephonyCallback.CallStateListener {
                 override fun onCallStateChanged(state: Int) {
+                    // Number is intentionally null here on API 31+.
+                    // handleCallState() reads it from CallifyScreeningService.pendingNumber.
                     handleCallState(state, null)
                 }
             }
@@ -150,9 +156,18 @@ class CallDetectorService : Service() {
                 lookupJob?.cancel()
                 overlayManager.dismiss()
 
-                val normalized = PhoneNumberNormalizer.normalize(incomingNumber)
-                
-                if (BuildConfig.DEBUG) Log.d(TAG, "Incoming: $incomingNumber (normalized: $normalized)")
+                // On API 29+ the number is captured by CallifyScreeningService
+                // before CALL_STATE_RINGING fires. On older APIs it arrives via
+                // the PhoneStateListener param.
+                val rawNumber = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    CallifyScreeningService.pendingNumber ?: incomingNumber
+                } else {
+                    incomingNumber
+                }
+
+                val normalized = PhoneNumberNormalizer.normalize(rawNumber)
+
+                if (BuildConfig.DEBUG) Log.d(TAG, "Incoming: $rawNumber (normalized: $normalized)")
 
                 // Edge Case: Private / Withheld numbers
                 if (normalized == null || 
@@ -197,7 +212,7 @@ class CallDetectorService : Service() {
                         
                         if (BuildConfig.DEBUG) {
                             when (result) {
-                                is CallerResult.Found -> Log.d(TAG, "Found: ${result.info.firstname} ${result.info.lastname}")
+                                is CallerResult.Found -> Log.d(TAG, "Found: ${result.info.name}")
                                 is CallerResult.NotFound -> Log.d(TAG, "No record for $normalized")
                                 is CallerResult.Timeout -> Log.d(TAG, "Lookup timed out")
                                 is CallerResult.NetworkError -> Log.d(TAG, "Network error during lookup")
@@ -214,6 +229,10 @@ class CallDetectorService : Service() {
                 isCallActive = false
                 lookupJob?.cancel()
                 overlayManager.dismiss()
+                // Clear the number captured by CallifyScreeningService.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    CallifyScreeningService.clearPendingNumber()
+                }
             }
         }
     }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.PixelFormat
 import android.provider.Settings
 import android.util.Log
+import android.view.ContextThemeWrapper
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -32,6 +33,24 @@ class OverlayManager @Inject constructor(
     private val tag = "Callify"
 
     /**
+     * A themed context backed by [R.style.Theme_Callify].
+     *
+     * The bare application context delivered to a Service carries only the
+     * default system theme, which does not contain Material / AppCompat
+     * attributes such as `?attr/selectableItemBackgroundBorderless`.
+     * Wrapping it here ensures every inflate call resolves those attributes
+     * correctly without requiring an Activity context.
+     */
+    private val themedContext: Context by lazy {
+        ContextThemeWrapper(context, R.style.Theme_Callify)
+    }
+
+    /** Inflater that uses [themedContext] so all theme attrs resolve. */
+    private val inflater: LayoutInflater by lazy {
+        LayoutInflater.from(themedContext)
+    }
+
+    /**
      * Shows the loading skeleton state of the overlay.
      * Called immediately when a call is detected.
      */
@@ -45,7 +64,6 @@ class OverlayManager @Inject constructor(
             dismiss()
         }
 
-        val inflater = LayoutInflater.from(context)
         // Passing null is acceptable for WindowManager overlays as there is no parent ViewGroup.
         overlayView = inflater.inflate(R.layout.overlay_caller, null)
 
@@ -87,7 +105,6 @@ class OverlayManager @Inject constructor(
 
         // If not already showing (e.g. showLoading was skipped or failed), create it
         if (overlayView == null) {
-            val inflater = LayoutInflater.from(context)
             overlayView = inflater.inflate(R.layout.overlay_caller, null)
             overlayView?.let { view ->
                 view.findViewById<ImageButton>(R.id.dismissButton).setOnClickListener { dismiss() }
@@ -122,16 +139,12 @@ class OverlayManager @Inject constructor(
 
         when (result) {
             is CallerResult.Found -> {
-                avatarInitial.text = result.info.firstname?.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
-                val fullName = context.getString(
-                    R.string.caller_name_format,
-                    result.info.firstname ?: "",
-                    result.info.lastname ?: ""
-                ).trim()
-                name.text = fullName
+                val fullName = result.info.name?.trim().orEmpty()
+                avatarInitial.text = fullName.firstOrNull()?.uppercaseChar()?.toString() ?: "?"
+                name.text = fullName.ifEmpty { context.getString(R.string.unknown_caller) }
                 val displayAddress = result.info.address ?: context.getString(R.string.address_unavailable)
                 address.text = displayAddress
-                
+
                 view.contentDescription = "Incoming call from $fullName. $displayAddress"
             }
             is CallerResult.NotFound -> {

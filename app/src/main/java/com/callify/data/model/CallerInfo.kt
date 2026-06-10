@@ -1,31 +1,23 @@
 package com.callify.data.model
 
-import androidx.room.ColumnInfo
-import androidx.room.Entity
-import androidx.room.PrimaryKey
-
 /**
  * Data class representing the information about a caller.
  *
- * @property firstname The first name of the caller.
- * @property lastname The last name of the caller.
- * @property phone The phone number of the caller.
- * @property address The physical address of the caller.
+ * Deserialised directly from the JSON body returned by GET /lookup/{phone}.
+ *
+ * API response shape:
+ * {
+ *   "phone_number": "9056226824",
+ *   "name":         "Malik Yusuff",
+ *   "address":      "plot 16, otungba jobi fele way, ikeja."
+ * }
+ *
+ * @property phone_number The phone number as stored server-side.
+ * @property name         The full name of the caller (first + last combined).
+ * @property address      The physical address of the caller.
  */
-@Entity(tableName = "contacts")
 data class CallerInfo(
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-
-    @ColumnInfo(name = "first_name")
-    val firstname: String?,
-
-    @ColumnInfo(name = "last_name")
-    val lastname: String?,
-
-    @ColumnInfo(name = "phone")
-    val phone: String?,
-
-    @ColumnInfo(name = "address")
-    val address: String?
+    val phone_number: String?,
+    val name:         String?,
+    val address:      String?
 )

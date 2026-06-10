@@ -23,7 +23,7 @@ android {
         // Currently used by: POST /lookup (CallerApiClient.lookup)
         // To add a new endpoint, extend CallerApiClient — do not add a
         // second base URL field.
-        buildConfigField("String", "CALLIFY_API_BASE_URL", "\"https://api.callify.com/\"")
+        buildConfigField("String", "CALLIFY_API_BASE_URL", "\"https://callerid-api-obkm.onrender.com/\"")
     }
 
     buildTypes {
@@ -74,11 +74,6 @@ dependencies {
     // Hilt
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
-
-    // Room — local database for mock data (swap for API when ready)
-    implementation("androidx.room:room-runtime:2.8.4")
-    implementation("androidx.room:room-ktx:2.8.4")
-    kapt("androidx.room:room-compiler:2.8.4")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
