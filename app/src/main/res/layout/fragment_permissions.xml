@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F5F0">
+
+    <!-- About Section -->
+    <TextView
+        android:id="@+id/aboutLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="24dp"
+        android:fontFamily="serif"
+        android:text="@string/about_label"
+        android:textColor="#1A1A1A"
+        android:textSize="20sp"
+        android:textStyle="italic" />
+
+    <TextView
+        android:id="@+id/aboutSubtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="@string/about_subtitle"
+        android:textColor="#888888"
+        android:textSize="13sp"
+        android:textStyle="italic" />
+
+    <!-- Divider -->
+    <View
+        android:id="@+id/divider1"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="#DDDDDD" />
+
+    <!-- Permissions Section -->
+    <TextView
+        android:id="@+id/permissionsLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="24dp"
+        android:fontFamily="serif"
+        android:text="@string/permissions_label"
+        android:textColor="#1A1A1A"
+        android:textSize="20sp"
+        android:textStyle="italic" />
+
+    <!-- Phone State Row -->
+    <RelativeLayout
+        android:id="@+id/rowPhoneState"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginTop="8dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+        <TextView
+            android:id="@+id/labelPhoneState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:paddingStart="16dp"
+            android:text="@string/permission_phone_state"
+            android:textColor="#1A1A1A"
+            android:textSize="16sp"
+            android:textStyle="italic"
+            tools:ignore="RtlSymmetry" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchPhoneState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:clickable="false"
+            android:focusable="false"
+            android:paddingEnd="16dp"
+            app:thumbTint="@color/switch_thumb_color"
+            app:trackTint="@color/switch_track_color"
+            tools:ignore="RtlSymmetry" />
+
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/dividerPhoneState"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE" />
+
+    <!-- Notifications Row -->
+    <RelativeLayout
+        android:id="@+id/rowNotifications"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+        <TextView
+            android:id="@+id/labelNotifications"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:paddingStart="16dp"
+            android:text="@string/permission_notifications"
+            android:textColor="#1A1A1A"
+            android:textSize="16sp"
+            android:textStyle="italic"
+            tools:ignore="RtlSymmetry" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchNotifications"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:clickable="false"
+            android:focusable="false"
+            android:paddingEnd="16dp"
+            app:thumbTint="@color/switch_thumb_color"
+            app:trackTint="@color/switch_track_color"
+            tools:ignore="RtlSymmetry" />
+
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/dividerNotifications"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE" />
+
+    <!-- Overlay Row -->
+    <RelativeLayout
+        android:id="@+id/rowOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"
+        android:focusableInTouchMode="true">
+
+        <TextView
+            android:id="@+id/labelOverlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:paddingStart="16dp"
+            android:text="@string/permission_overlay"
+            android:textColor="#1A1A1A"
+            android:textSize="16sp"
+            android:textStyle="italic"
+            tools:ignore="RtlSymmetry" />
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchOverlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:clickable="false"
+            android:focusable="false"
+            android:paddingEnd="16dp"
+            app:thumbTint="@color/switch_thumb_color"
+            app:trackTint="@color/switch_track_color"
+            tools:ignore="RtlSymmetry" />
+
+    </RelativeLayout>
+
+    <View
+        android:id="@+id/dividerOverlay"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#EEEEEE" />
+
+</LinearLayout>

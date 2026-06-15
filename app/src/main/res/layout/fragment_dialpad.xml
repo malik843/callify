@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F0">
+
+    <!-- Number display + backspace row -->
+    <TextView
+        android:id="@+id/tvDialDisplay"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="8dp"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        android:textColor="#1A1A1A"
+        android:gravity="center"
+        android:hint="Enter number"
+        android:singleLine="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnBackspace" />
+
+    <ImageButton
+        android:id="@+id/btnBackspace"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_input_delete"
+        android:contentDescription="Delete digit"
+        app:layout_constraintTop_toTopOf="@id/tvDialDisplay"
+        app:layout_constraintBottom_toBottomOf="@id/tvDialDisplay"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Row 1: 1  2  3 -->
+    <Button android:id="@+id/btn1"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:layout_marginTop="16dp"
+        android:text="1" android:textSize="20sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/tvDialDisplay"
+        app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@id/btn2"
+        app:layout_constraintHorizontal_chainStyle="spread"/>
+    <Button android:id="@+id/btn2"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:layout_marginTop="16dp"
+        android:text="2\nABC" android:textSize="18sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/tvDialDisplay"
+        app:layout_constraintStart_toEndOf="@id/btn1" app:layout_constraintEnd_toStartOf="@id/btn3"/>
+    <Button android:id="@+id/btn3"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:layout_marginTop="16dp"
+        android:text="3\nDEF" android:textSize="18sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/tvDialDisplay"
+        app:layout_constraintStart_toEndOf="@id/btn2" app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Row 2: 4  5  6 -->
+    <Button android:id="@+id/btn4"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:text="4\nGHI" android:textSize="18sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn1"
+        app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@id/btn5"
+        app:layout_constraintHorizontal_chainStyle="spread"/>
+    <Button android:id="@+id/btn5"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:text="5\nJKL" android:textSize="18sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn2"
+        app:layout_constraintStart_toEndOf="@id/btn4" app:layout_constraintEnd_toStartOf="@id/btn6"/>
+    <Button android:id="@+id/btn6"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:text="6\nMNO" android:textSize="18sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn3"
+        app:layout_constraintStart_toEndOf="@id/btn5" app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Row 3: 7  8  9 -->
+    <Button android:id="@+id/btn7"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:text="7\nPQRS" android:textSize="18sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn4"
+        app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@id/btn8"
+        app:layout_constraintHorizontal_chainStyle="spread"/>
+    <Button android:id="@+id/btn8"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:text="8\nTUV" android:textSize="18sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn5"
+        app:layout_constraintStart_toEndOf="@id/btn7" app:layout_constraintEnd_toStartOf="@id/btn9"/>
+    <Button android:id="@+id/btn9"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:text="9\nWXYZ" android:textSize="18sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn6"
+        app:layout_constraintStart_toEndOf="@id/btn8" app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Row 4: *  0  # -->
+    <Button android:id="@+id/btnStar"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:text="*" android:textSize="24sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn7"
+        app:layout_constraintStart_toStartOf="parent" app:layout_constraintEnd_toStartOf="@id/btn0"
+        app:layout_constraintHorizontal_chainStyle="spread"/>
+    <Button android:id="@+id/btn0"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:text="0\n+" android:textSize="18sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn8"
+        app:layout_constraintStart_toEndOf="@id/btnStar" app:layout_constraintEnd_toStartOf="@id/btnHash"/>
+    <Button android:id="@+id/btnHash"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="0dp" android:layout_height="64dp"
+        android:text="#" android:textSize="24sp" android:textColor="#1A1A1A" android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/btn9"
+        app:layout_constraintStart_toEndOf="@id/btn0" app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Divider -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginTop="8dp"
+        android:background="#DDDDDD"
+        app:layout_constraintTop_toBottomOf="@id/btnStar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:id="@+id/dialDivider"/>
+
+    <!-- Call button -->
+    <ImageButton
+        android:id="@+id/btnCall"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_avatar_circle"
+        android:backgroundTint="#4CAF50"
+        android:src="@drawable/ic_call"
+        android:scaleType="center"
+        android:contentDescription="Dial"
+        app:layout_constraintTop_toBottomOf="@id/dialDivider"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.3" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

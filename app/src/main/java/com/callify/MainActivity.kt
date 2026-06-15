@@ -1,213 +1,233 @@
 package com.callify
 
-import android.Manifest
 import android.app.role.RoleManager
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.Paint
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.callify.databinding.ActivityMainBinding
 import com.callify.service.CallDetectorService
+import com.callify.ui.MainPagerAdapter
 import com.callify.utils.PermissionHelper
+import com.google.android.material.tabs.TabLayoutMediator
 
 /**
- * The main entry point of the Callify application.
+ * Main entry point of the Callify application.
  *
- * This activity displays the Permission Dashboard UI, allowing users to view
- * the current status of the runtime permissions required for the app's functionality
- * (Phone State, Notifications, and Draw Over Apps/Overlay).
+ * Hosts the two-tab layout:
+ * - Tab 0 "Dial"        → [com.callify.ui.DialPadFragment]
+ * - Tab 1 "Permissions" → [com.callify.ui.PermissionsFragment]
  *
- * On initial launch, the activity prompts the user for permissions sequentially.
- * If any permissions are denied or revoked, the UI reflects their states, and the user
- * can tap the rows to request them manually.
+ * Also responsible for:
+ * - Sequentially requesting runtime permissions on first launch
+ * - Requesting the dialer role (covers both default dialer + screening fallback)
+ * - Starting [CallDetectorService] once all permissions are confirmed
  */
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+
     private var hasPromptedOverlayThisSession = false
 
-    /** Launcher for the system RoleManager dialog (call-screening role). */
+    /**
+     * Unified role launcher.
+     *
+     * Strategy (merged as per user direction):
+     * 1. First attempt: request [RoleManager.ROLE_DIALER].
+     *    If granted → [CallifyInCallService] handles everything (dial + incoming).
+     * 2. If denied → request [RoleManager.ROLE_CALL_SCREENING] as a fallback so
+     *    [com.callify.service.CallifyScreeningService] can still capture incoming numbers
+     *    in observer mode.
+     */
     private lateinit var roleRequestLauncher: ActivityResultLauncher<Intent>
+
+    /** True once ROLE_DIALER has been attempted this session (prevents re-prompting). */
+    private var hasAttemptedDialerRole = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        // Apply underlines programmatically to headers
-        binding.aboutLabel.paintFlags = binding.aboutLabel.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-        binding.permissionsLabel.paintFlags = binding.permissionsLabel.paintFlags or Paint.UNDERLINE_TEXT_FLAG
-
-        // Register the role-request launcher before any prompt can fire.
-        roleRequestLauncher = registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult()
-        ) {
-            // Result arrives when the user dismisses the role dialog.
-            refreshPermissionStates()
-            startCallifyService()
-        }
-
-        wirePermissionRowClicks()
-        refreshPermissionStates()
+        setupTabs()
+        setupRoleLauncher()
         autoPromptNextPermission()
         startCallifyService()
     }
 
     override fun onResume() {
         super.onResume()
-        refreshPermissionStates()
         autoPromptNextPermission()
         startCallifyService()
     }
 
-    /**
-     * Reads the current grant state of each runtime permission
-     * and updates the SwitchCompat toggles to reflect reality.
-     * Called on onCreate() and onResume() so the UI always
-     * reflects the true system state.
-     */
-    private fun refreshPermissionStates() {
-        binding.switchPhoneState.isChecked =
-            PermissionHelper.hasPhoneStatePermission(this)
+    // ── Tabs ──────────────────────────────────────────────────────────────
 
-        binding.switchNotifications.isChecked =
-            PermissionHelper.hasNotificationPermission(this)
+    /** Wires [MainPagerAdapter] to [ViewPager2] and attaches [TabLayoutMediator]. */
+    private fun setupTabs() {
+        val adapter = MainPagerAdapter(this)
+        binding.viewPager.adapter = adapter
 
-        binding.switchOverlay.isChecked =
-            PermissionHelper.hasOverlayPermission(this)
+        TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
+            tab.text = when (position) {
+                0    -> "Dial"
+                else -> "Permissions"
+            }
+        }.attach()
     }
 
-    /**
-     * Wires each permission row's click listener.
-     * Tapping a row that is already granted does nothing.
-     * Tapping a denied row routes to the appropriate
-     * permission request or system settings screen.
-     */
-    private fun wirePermissionRowClicks() {
-        binding.rowPhoneState.setOnClickListener {
-            if (!PermissionHelper.hasPhoneStatePermission(this)) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.READ_PHONE_STATE),
-                    REQUEST_CODE_PHONE_STATE
-                )
-            }
-        }
+    // ── Role requests ─────────────────────────────────────────────────────
 
-        binding.rowNotifications.setOnClickListener {
-            if (!PermissionHelper.hasNotificationPermission(this)) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    ActivityCompat.requestPermissions(
+    /**
+     * Registers the launcher that handles results from both role dialogs.
+     *
+     * Flow:
+     * - ROLE_DIALER granted  → service + dialer both active; done.
+     * - ROLE_DIALER denied   → fall back and request ROLE_CALL_SCREENING.
+     * - ROLE_CALL_SCREENING  → result ignored (screening service registers silently).
+     */
+    private fun setupRoleLauncher() {
+        roleRequestLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (result.resultCode == RESULT_OK) {
+                if (BuildConfig.DEBUG) Log.d(TAG, "Role granted")
+            } else {
+                // ROLE_DIALER denied — fall back to screening role.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    requestScreeningRoleFallback()
+                } else {
+                    Toast.makeText(
                         this,
-                        arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                        REQUEST_CODE_NOTIFICATION
-                    )
+                        "Callify works best as the default phone app",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
-        }
-
-        binding.rowOverlay.setOnClickListener {
-            if (!PermissionHelper.hasOverlayPermission(this)) {
-                val intent = Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName")
-                )
-                startActivity(intent)
-            }
+            startCallifyService()
         }
     }
+
+    /**
+     * Requests [RoleManager.ROLE_DIALER] — the primary role that covers both
+     * outgoing dialing and incoming call detection via [CallifyInCallService].
+     *
+     * Called after all runtime permissions are confirmed.
+     * Silently skipped if the role is already held or not available.
+     */
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun requestDialerRole() {
+        if (hasAttemptedDialerRole) return
+        hasAttemptedDialerRole = true
+
+        val roleManager = getSystemService(Context.ROLE_SERVICE) as RoleManager
+        if (roleManager.isRoleHeld(RoleManager.ROLE_DIALER)) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "ROLE_DIALER already held")
+            return
+        }
+        if (!roleManager.isRoleAvailable(RoleManager.ROLE_DIALER)) {
+            if (BuildConfig.DEBUG) Log.w(TAG, "ROLE_DIALER not available — requesting screening fallback")
+            requestScreeningRoleFallback()
+            return
+        }
+        roleRequestLauncher.launch(
+            roleManager.createRequestRoleIntent(RoleManager.ROLE_DIALER)
+        )
+    }
+
+    /**
+     * Fallback: requests [RoleManager.ROLE_CALL_SCREENING] so
+     * [com.callify.service.CallifyScreeningService] can capture incoming numbers
+     * when Callify is NOT the default dialer.
+     *
+     * Silently skipped if already held or not available.
+     */
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun requestScreeningRoleFallback() {
+        val roleManager = getSystemService(Context.ROLE_SERVICE) as RoleManager
+        if (roleManager.isRoleHeld(RoleManager.ROLE_CALL_SCREENING)) {
+            if (BuildConfig.DEBUG) Log.d(TAG, "ROLE_CALL_SCREENING already held")
+            return
+        }
+        if (!roleManager.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) {
+            if (BuildConfig.DEBUG) Log.w(TAG, "ROLE_CALL_SCREENING not available")
+            return
+        }
+        roleRequestLauncher.launch(
+            roleManager.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING)
+        )
+    }
+
+    // ── Permissions ───────────────────────────────────────────────────────
 
     /**
      * Sequentially auto-prompts the user for missing permissions on launch.
-     * Uses a session boolean flag to prevent redirect loops for overlay permission.
+     * Role request fires last — only after all runtime permissions are confirmed.
      */
     private fun autoPromptNextPermission() {
-        // 1. Check READ_PHONE_STATE & READ_CALL_LOG
+        // 1. READ_PHONE_STATE + READ_CALL_LOG
         if (!PermissionHelper.hasPhoneStatePermission(this)) {
-            ActivityCompat.requestPermissions(
-                this,
+            requestPermissions(
                 arrayOf(
-                    Manifest.permission.READ_PHONE_STATE,
-                    Manifest.permission.READ_CALL_LOG
+                    android.Manifest.permission.READ_PHONE_STATE,
+                    android.Manifest.permission.READ_CALL_LOG
                 ),
                 REQUEST_CODE_PHONE_STATE
             )
             return
         }
 
-        // 2. Check SYSTEM_ALERT_WINDOW (Overlay)
+        // 2. SYSTEM_ALERT_WINDOW (overlay)
         if (!PermissionHelper.hasOverlayPermission(this)) {
             if (!hasPromptedOverlayThisSession) {
                 hasPromptedOverlayThisSession = true
-                val intent = Intent(
-                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:$packageName")
+                startActivity(
+                    Intent(
+                        android.provider.Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        android.net.Uri.parse("package:$packageName")
+                    )
                 )
-                startActivity(intent)
             }
             return
         }
 
-        // 3. Check POST_NOTIFICATIONS (Android 13+)
+        // 3. POST_NOTIFICATIONS (Android 13+)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (!PermissionHelper.hasNotificationPermission(this)) {
-                ActivityCompat.requestPermissions(
-                    this,
-                    arrayOf(Manifest.permission.POST_NOTIFICATIONS),
+                requestPermissions(
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
                     REQUEST_CODE_NOTIFICATION
                 )
                 return
             }
         }
 
-        // 4. Request call-screening role (Android 10+ / API 29+)
-        //    Grants CallifyScreeningService the right to fire for every incoming
-        //    call so we can capture the caller number before RINGING is raised.
+        // 4. Dialer role — fires AFTER all runtime permissions are confirmed.
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            requestCallScreeningRole()
+            requestDialerRole()
         }
     }
 
     /**
-     * Asks the system to grant Callify the [RoleManager.ROLE_CALL_SCREENING] role.
-     * Required on API 29+ for [com.callify.service.CallifyScreeningService] to be
-     * invoked by the OS for every incoming call, supplying the caller number.
-     * Silently skipped if the role is already held.
-     */
-    @androidx.annotation.RequiresApi(Build.VERSION_CODES.Q)
-    private fun requestCallScreeningRole() {
-        val roleManager = getSystemService(RoleManager::class.java) ?: return
-        if (roleManager.isRoleHeld(RoleManager.ROLE_CALL_SCREENING)) {
-            Log.d(TAG, "Call screening role already held")
-            return
-        }
-        if (!roleManager.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING)) {
-            Log.w(TAG, "Call screening role not available on this device")
-            return
-        }
-        val intent = roleManager.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING)
-        roleRequestLauncher.launch(intent)
-    }
-
-    /**
-     * Starts the foreground service if and only if all required runtime
-     * permissions are granted.
+     * Starts [CallDetectorService] if all required runtime permissions are granted.
+     * The service operates in observer mode when Callify is not the default dialer.
      */
     private fun startCallifyService() {
         if (PermissionHelper.hasPhoneStatePermission(this) &&
             PermissionHelper.hasNotificationPermission(this) &&
             PermissionHelper.hasOverlayPermission(this)) {
-            val intent = Intent(this, CallDetectorService::class.java)
-            ContextCompat.startForegroundService(this, intent)
+            ContextCompat.startForegroundService(
+                this,
+                Intent(this, CallDetectorService::class.java)
+            )
         }
     }
 
@@ -217,22 +237,25 @@ class MainActivity : AppCompatActivity() {
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        // Refresh all switches regardless of which permission was just
-        // acted on — simplest and most correct approach
-        refreshPermissionStates()
 
-        // If the permission was granted, prompt the next one automatically
+        // Refresh the Permissions tab switches.
+        permissionsFragment()?.refreshPermissionStates()
+
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             autoPromptNextPermission()
         }
-
-        // If all permissions now granted, start the service
         startCallifyService()
     }
 
+    /** Returns the [PermissionsFragment] instance if it is currently attached. */
+    private fun permissionsFragment() =
+        supportFragmentManager.fragments
+            .filterIsInstance<com.callify.ui.PermissionsFragment>()
+            .firstOrNull()
+
     companion object {
         private const val TAG = "Callify"
-        private const val REQUEST_CODE_PHONE_STATE = 1001
+        private const val REQUEST_CODE_PHONE_STATE  = 1001
         private const val REQUEST_CODE_NOTIFICATION = 1002
     }
 }

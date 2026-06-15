@@ -75,6 +75,10 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
+    // ViewPager2 + Fragments (tabbed MainActivity)
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
 }

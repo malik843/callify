@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Existing permissions — do not remove -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
@@ -10,6 +11,9 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_PHONE_CALL" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.MANAGE_OWN_CALLS" />
+
+    <!-- New: required for TelecomManager.placeCall() in DialPadFragment -->
+    <uses-permission android:name="android.permission.CALL_PHONE" />
 
     <application
         android:name=".CallifyApplication"
@@ -22,6 +26,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Callify">
 
+        <!-- ── Activities ──────────────────────────────────────────────── -->
+
         <activity
             android:name=".MainActivity"
             android:exported="true">
@@ -31,6 +37,36 @@
             </intent-filter>
         </activity>
 
+        <!-- Full-screen call screen (incoming + outgoing).
+             showWhenLocked / turnScreenOn surface it over the lock screen. -->
+        <activity
+            android:name=".ui.CallActivity"
+            android:exported="false"
+            android:launchMode="singleTop"
+            android:showWhenLocked="true"
+            android:turnScreenOn="true" />
+
+        <!--
+            DialerActivity: transparent alias required for ROLE_DIALER eligibility.
+            ACTION_DIAL intent filters tell Android this app can act as a dialer.
+            The actual dial-pad UI lives in MainActivity's Dial tab.
+        -->
+        <activity
+            android:name=".ui.DialerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.DIAL" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:scheme="tel" />
+            </intent-filter>
+        </activity>
+
+        <!-- ── Services ───────────────────────────────────────────────── -->
+
         <service
             android:name=".service.CallDetectorService"
             android:enabled="true"
@@ -39,8 +75,8 @@
 
         <!--
             CallScreeningService: captures the incoming phone number before
-            CALL_STATE_RINGING fires. Requires the user to grant the
-            ROLE_CALL_SCREENING role (prompted in MainActivity).
+            CALL_STATE_RINGING fires (observer-mode fallback when not default dialer).
+            Requires ROLE_CALL_SCREENING (requested as fallback in MainActivity).
         -->
         <service
             android:name=".service.CallifyScreeningService"
@@ -52,6 +88,39 @@
             </intent-filter>
         </service>
 
+        <!--
+            InCallService: receives Call objects from Android Telecom when
+            Callify is the default dialer (ROLE_DIALER held).
+            IN_CALL_SERVICE_UI = true signals that Callify provides its own
+            call screen (CallActivity) instead of the system one.
+        -->
+        <service
+            android:name=".service.CallifyInCallService"
+            android:exported="true"
+            android:permission="android.permission.BIND_INCALL_SERVICE">
+            <meta-data
+                android:name="android.telecom.IN_CALL_SERVICE_UI"
+                android:value="true" />
+            <intent-filter>
+                <action android:name="android.telecom.InCallService" />
+            </intent-filter>
+        </service>
+
+        <!-- ── Receivers ──────────────────────────────────────────────── -->
+
+        <!--
+            CallActionReceiver: handles Accept / Decline notification button taps.
+            Not exported — only reachable via internal PendingIntents.
+        -->
+        <receiver
+            android:name=".receiver.CallActionReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.callify.ACTION_ACCEPT" />
+                <action android:name="com.callify.ACTION_DECLINE" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
-</manifest>
+</manifest>
