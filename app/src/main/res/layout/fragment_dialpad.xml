@@ -1,0 +1,478 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    fragment_dialpad.xml — Clean iOS-style dialpad.
+
+    Layout regions (top → bottom inside fragment):
+    ┌──────────────────────────────────┐
+    │  [  whitespace + cursor "|"  ]   │  ~28% of height
+    ├──────────────────────────────────┤
+    │  1          2 ABC       3 DEF    │
+    │  4 GHI      5 JKL       6 MNO   │
+    │  7 PQRS     8 TUV       9 WXYZ  │
+    │  *          0           #        │
+    ├──────────────────────────────────┤
+    │       [●CALL]      [■ ⌫]         │
+    └──────────────────────────────────┘
+
+    Each digit key is a vertical LinearLayout (id=btn0..9, btnStar, btnHash):
+    - android:clickable="true" so DialPadFragment can attach OnClickListeners
+    - Two child TextViews: large digit + small letter label (empty where no letters)
+-->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/white">
+
+    <!--
+        Guideline — keypad starts at 28% from the top of the fragment.
+        The display cursor floats in the space above.
+    -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guidelineKeypadTop"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.28" />
+
+    <!-- ── Number display ──────────────────────────────────────────────────── -->
+    <!--
+        Shows the typed number. Starts with "|" to mimic a cursor.
+        DialPadFragment clears this on the first keystroke.
+    -->
+    <TextView
+        android:id="@+id/tvDialDisplay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="34sp"
+        android:textColor="#000000"
+        android:fontFamily="sans-serif-light"
+        android:gravity="center"
+        android:includeFontPadding="false"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/guidelineKeypadTop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintVertical_bias="0.85" />
+
+    <!-- ════════════════════════════════════════════════════════════════
+         ROW 1 — 1 | 2 ABC | 3 DEF
+         Horizontal spread chain: btn1 ↔ btn2 ↔ btn3
+         ════════════════════════════════════════════════════════════════ -->
+
+    <LinearLayout
+        android:id="@+id/btn1"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/guidelineKeypadTop"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn2"
+        app:layout_constraintHorizontal_chainStyle="spread">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="1"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="12dp"
+            android:text="" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btn2"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/guidelineKeypadTop"
+        app:layout_constraintStart_toEndOf="@id/btn1"
+        app:layout_constraintEnd_toStartOf="@id/btn3">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="ABC"
+            android:textSize="9sp"
+            android:textColor="#555555"
+            android:letterSpacing="0.14" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btn3"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/guidelineKeypadTop"
+        app:layout_constraintStart_toEndOf="@id/btn2"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DEF"
+            android:textSize="9sp"
+            android:textColor="#555555"
+            android:letterSpacing="0.14" />
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         ROW 2 — 4 GHI | 5 JKL | 6 MNO
+         ════════════════════════════════════════════════════════════════ -->
+
+    <LinearLayout
+        android:id="@+id/btn4"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/btn1"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn5"
+        app:layout_constraintHorizontal_chainStyle="spread">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="4"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="GHI"
+            android:textSize="9sp"
+            android:textColor="#555555"
+            android:letterSpacing="0.14" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btn5"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/btn2"
+        app:layout_constraintStart_toEndOf="@id/btn4"
+        app:layout_constraintEnd_toStartOf="@id/btn6">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="5"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="JKL"
+            android:textSize="9sp"
+            android:textColor="#555555"
+            android:letterSpacing="0.14" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btn6"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/btn3"
+        app:layout_constraintStart_toEndOf="@id/btn5"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="6"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="MNO"
+            android:textSize="9sp"
+            android:textColor="#555555"
+            android:letterSpacing="0.14" />
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         ROW 3 — 7 PQRS | 8 TUV | 9 WXYZ
+         ════════════════════════════════════════════════════════════════ -->
+
+    <LinearLayout
+        android:id="@+id/btn7"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/btn4"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn8"
+        app:layout_constraintHorizontal_chainStyle="spread">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="7"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="PQRS"
+            android:textSize="9sp"
+            android:textColor="#555555"
+            android:letterSpacing="0.12" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btn8"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/btn5"
+        app:layout_constraintStart_toEndOf="@id/btn7"
+        app:layout_constraintEnd_toStartOf="@id/btn9">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="8"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TUV"
+            android:textSize="9sp"
+            android:textColor="#555555"
+            android:letterSpacing="0.14" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btn9"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/btn6"
+        app:layout_constraintStart_toEndOf="@id/btn8"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="9"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="WXYZ"
+            android:textSize="9sp"
+            android:textColor="#555555"
+            android:letterSpacing="0.12" />
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         ROW 4 — * | 0 | #
+         ════════════════════════════════════════════════════════════════ -->
+
+    <LinearLayout
+        android:id="@+id/btnStar"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/btn7"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btn0"
+        app:layout_constraintHorizontal_chainStyle="spread">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="*"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="12dp"
+            android:text="" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btn0"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/btn8"
+        app:layout_constraintStart_toEndOf="@id/btnStar"
+        app:layout_constraintEnd_toStartOf="@id/btnHash">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="12dp"
+            android:text="" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btnHash"
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        app:layout_constraintTop_toBottomOf="@id/btn9"
+        app:layout_constraintStart_toEndOf="@id/btn0"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#"
+            android:textSize="32sp"
+            android:textStyle="bold"
+            android:textColor="#000000"
+            android:includeFontPadding="false" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="12dp"
+            android:text="" />
+    </LinearLayout>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         ACTION ROW — green call circle (centre) + dark backspace (right)
+         Matches the image: left column empty, call in centre, backspace right.
+         ════════════════════════════════════════════════════════════════ -->
+
+    <!-- Green call button — occupies centre column -->
+    <ImageButton
+        android:id="@+id/btnCall"
+        android:layout_width="68dp"
+        android:layout_height="68dp"
+        android:background="@drawable/bg_avatar_circle"
+        android:backgroundTint="#34C759"
+        android:src="@drawable/ic_call"
+        android:tint="#FFFFFF"
+        android:scaleType="center"
+        android:contentDescription="Dial"
+        android:layout_marginTop="28dp"
+        app:layout_constraintTop_toBottomOf="@id/btn0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Dark backspace key — occupies right column -->
+    <ImageButton
+        android:id="@+id/btnBackspace"
+        android:layout_width="68dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_backspace_key"
+        android:src="@android:drawable/ic_input_delete"
+        android:tint="#FFFFFF"
+        android:scaleType="center"
+        android:contentDescription="Delete digit"
+        android:visibility="gone"
+        app:layout_constraintTop_toTopOf="@id/btnCall"
+        app:layout_constraintBottom_toBottomOf="@id/btnCall"
+        app:layout_constraintStart_toStartOf="@id/btnHash"
+        app:layout_constraintEnd_toEndOf="@id/btnHash" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

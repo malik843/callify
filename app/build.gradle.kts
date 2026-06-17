@@ -75,6 +75,10 @@ dependencies {
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
+    // ViewPager2 + Fragments (tabbed MainActivity)
+    implementation("androidx.viewpager2:viewpager2:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.5")
+
     // Room — local database for mock data (swap for API when ready)
     implementation("androidx.room:room-runtime:2.8.4")
     implementation("androidx.room:room-ktx:2.8.4")

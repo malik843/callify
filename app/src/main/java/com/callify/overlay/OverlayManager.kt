@@ -1,7 +1,9 @@
 package com.callify.overlay
 
+import android.app.role.RoleManager
 import android.content.Context
 import android.graphics.PixelFormat
+import android.os.Build
 import android.provider.Settings
 import android.view.ContextThemeWrapper
 import android.util.Log
@@ -12,6 +14,7 @@ import android.view.WindowManager
 import android.widget.ImageButton
 import android.widget.LinearLayout
 import android.widget.TextView
+import com.callify.BuildConfig
 import com.callify.R
 import com.callify.data.model.CallerResult
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -34,9 +37,14 @@ class OverlayManager @Inject constructor(
 
     /**
      * Shows the loading skeleton state of the overlay.
-     * Called immediately when a call is detected.
+     * Skipped when Callify is the default dialer — [com.callify.ui.CallActivity]
+     * handles the call screen in that mode.
      */
     fun showLoading() {
+        if (isDefaultDialerActive()) {
+            if (BuildConfig.DEBUG) Log.d(tag, "Default dialer active — skipping overlay showLoading")
+            return
+        }
         if (!Settings.canDrawOverlays(context)) {
             Log.e(tag, "Cannot show overlay: Permission missing")
             return
@@ -78,10 +86,15 @@ class OverlayManager @Inject constructor(
 
     /**
      * Updates or shows the overlay with the lookup result.
+     * Skipped when Callify is the default dialer.
      *
      * @param result The [CallerResult] to display.
      */
     fun show(result: CallerResult) {
+        if (isDefaultDialerActive()) {
+            if (BuildConfig.DEBUG) Log.d(tag, "Default dialer active — skipping overlay show")
+            return
+        }
         if (!Settings.canDrawOverlays(context)) {
             Log.e(tag, "Cannot update overlay: Permission missing")
             return
@@ -195,4 +208,18 @@ class OverlayManager @Inject constructor(
 
     private fun Int.dpToPx(context: Context): Int =
         (this * context.resources.displayMetrics.density).toInt()
+
+    /**
+     * Returns true when Callify currently holds [RoleManager.ROLE_DIALER].
+     *
+     * When true, [com.callify.ui.CallActivity] provides the call screen via
+     * [android.telecom.InCallService] — the [WindowManager] overlay is not needed
+     * and [showLoading] / [show] return early. [dismiss] always runs regardless.
+     */
+    private fun isDefaultDialerActive(): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) return false
+        val roleManager = context.getSystemService(Context.ROLE_SERVICE) as? RoleManager
+            ?: return false
+        return roleManager.isRoleHeld(RoleManager.ROLE_DIALER)
+    }
 }

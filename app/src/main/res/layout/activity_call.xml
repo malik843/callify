@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#1C1C1E">
+
+    <View
+        android:id="@+id/avatarView"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:background="@drawable/bg_avatar_circle"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintVertical_bias="0.2" />
+
+    <TextView
+        android:id="@+id/avatarInitial"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"
+        android:textSize="32sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="@id/avatarView"
+        app:layout_constraintBottom_toBottomOf="@id/avatarView"
+        app:layout_constraintStart_toStartOf="@id/avatarView"
+        app:layout_constraintEnd_toEndOf="@id/avatarView" />
+
+    <TextView
+        android:id="@+id/tvCallerName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center"
+        android:textColor="@android:color/white"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/avatarView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvCallerAddress"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginEnd="24dp"
+        android:gravity="center"
+        android:textColor="#A0A0A0"
+        android:textSize="14sp"
+        android:maxLines="2"
+        android:ellipsize="end"
+        app:layout_constraintTop_toBottomOf="@id/tvCallerName"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvCallStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:textColor="#888888"
+        android:textSize="14sp"
+        android:textStyle="italic"
+        app:layout_constraintTop_toBottomOf="@id/tvCallerAddress"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Accept button (RINGING) -->
+    <ImageButton
+        android:id="@+id/btnAccept"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="48dp"
+        android:layout_marginEnd="32dp"
+        android:background="@drawable/bg_avatar_circle"
+        android:backgroundTint="#4CAF50"
+        android:src="@drawable/ic_call_accept"
+        android:scaleType="center"
+        android:contentDescription="Accept call"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/btnDecline"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Decline button (RINGING) -->
+    <ImageButton
+        android:id="@+id/btnDecline"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="48dp"
+        android:background="@drawable/bg_avatar_circle"
+        android:backgroundTint="#F44336"
+        android:src="@drawable/ic_call_decline"
+        android:scaleType="center"
+        android:contentDescription="Decline call"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnAccept"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Hang-up button (ACTIVE) -->
+    <ImageButton
+        android:id="@+id/btnHangUp"
+        android:layout_width="72dp"
+        android:layout_height="72dp"
+        android:layout_marginBottom="48dp"
+        android:background="@drawable/bg_avatar_circle"
+        android:backgroundTint="#F44336"
+        android:src="@drawable/ic_call_decline"
+        android:scaleType="center"
+        android:contentDescription="Hang up"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
