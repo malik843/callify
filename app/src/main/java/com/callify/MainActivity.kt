@@ -214,7 +214,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        // 4. Dialer role — after all runtime permissions confirmed
+        // 4. READ_PHONE_NUMBERS — needed for ReceiverNumberResolver (call log receiver field)
+        if (!PermissionHelper.hasPhoneNumbersPermission(this)) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.READ_PHONE_NUMBERS),
+                REQUEST_CODE_PHONE_NUMBERS
+            )
+            return
+        }
+
+        // 5. Dialer role — after all runtime permissions confirmed
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             requestDialerRole()
         }
@@ -227,7 +237,8 @@ class MainActivity : AppCompatActivity() {
     private fun startCallifyService() {
         if (PermissionHelper.hasPhoneStatePermission(this) &&
             PermissionHelper.hasNotificationPermission(this) &&
-            PermissionHelper.hasOverlayPermission(this)) {
+            PermissionHelper.hasOverlayPermission(this) &&
+            PermissionHelper.hasPhoneNumbersPermission(this)) {
             ContextCompat.startForegroundService(
                 this, Intent(this, CallDetectorService::class.java)
             )
@@ -256,7 +267,8 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "Callify"
-        private const val REQUEST_CODE_PHONE_STATE  = 1001
-        private const val REQUEST_CODE_NOTIFICATION = 1002
+        private const val REQUEST_CODE_PHONE_STATE   = 1001
+        private const val REQUEST_CODE_NOTIFICATION  = 1002
+        private const val REQUEST_CODE_PHONE_NUMBERS = 1003
     }
 }

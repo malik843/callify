@@ -16,4 +16,5 @@
     <string name="permission_phone_state">Phone State</string>
     <string name="permission_notifications">Notifications</string>
     <string name="permission_overlay">Draw Over Apps</string>
+    <string name="permission_phone_numbers">Phone Number Access</string>
 </resources>

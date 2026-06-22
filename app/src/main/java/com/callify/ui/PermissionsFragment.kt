@@ -56,6 +56,7 @@ class PermissionsFragment : Fragment() {
         binding.switchPhoneState.isChecked    = PermissionHelper.hasPhoneStatePermission(requireContext())
         binding.switchNotifications.isChecked = PermissionHelper.hasNotificationPermission(requireContext())
         binding.switchOverlay.isChecked       = PermissionHelper.hasOverlayPermission(requireContext())
+        binding.switchPhoneNumbers.isChecked  = PermissionHelper.hasPhoneNumbersPermission(requireContext())
     }
 
     private fun wirePermissionRowClicks() {
@@ -89,6 +90,15 @@ class PermissionsFragment : Fragment() {
                 )
             }
         }
+        binding.rowPhoneNumbers.setOnClickListener {
+            if (!PermissionHelper.hasPhoneNumbersPermission(requireContext())) {
+                ActivityCompat.requestPermissions(
+                    requireActivity(),
+                    arrayOf(Manifest.permission.READ_PHONE_NUMBERS),
+                    REQUEST_CODE_PHONE_NUMBERS
+                )
+            }
+        }
     }
 
     override fun onDestroyView() {
@@ -97,7 +107,8 @@ class PermissionsFragment : Fragment() {
     }
 
     companion object {
-        private const val REQUEST_CODE_PHONE_STATE  = 1001
-        private const val REQUEST_CODE_NOTIFICATION = 1002
+        private const val REQUEST_CODE_PHONE_STATE   = 1001
+        private const val REQUEST_CODE_NOTIFICATION  = 1002
+        private const val REQUEST_CODE_PHONE_NUMBERS = 1003
     }
 }

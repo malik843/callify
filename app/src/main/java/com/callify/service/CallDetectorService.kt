@@ -14,6 +14,8 @@ import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.callify.BuildConfig
+import com.callify.data.local.CallifyDatabase
+import com.callify.data.local.CallLogWriter
 import com.callify.data.model.CallerResult
 import com.callify.overlay.OverlayManager
 import com.callify.repository.CallerRepository
@@ -222,6 +224,23 @@ class CallDetectorService : Service() {
                             }
                         }
                     }
+
+                    // ── CALL LOG WRITE ───────────────────────────────────────────
+                    // Silent backend log — no UI involvement.
+                    // Runs after withContext(Main) returns, still on Dispatchers.IO.
+                    // Writes date, time, caller identity, and receiver number to
+                    // the call_log table. ADB-only access on debug builds.
+                    // Internal exceptions are caught by CallLogWriter — the overlay
+                    // and call flow are completely unaffected by any write failure.
+                    // ─────────────────────────────────────────────────────────────
+                    CallLogWriter(
+                        dao     = CallifyDatabase.getInstance(applicationContext).callLogDao(),
+                        context = applicationContext
+                    ).write(
+                        incomingNumber = normalized,
+                        result         = result
+                    )
+                    // ── END CALL LOG WRITE ───────────────────────────────────────
                 }
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {
